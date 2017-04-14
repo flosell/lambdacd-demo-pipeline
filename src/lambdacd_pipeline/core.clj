@@ -16,7 +16,7 @@
         config   {:home-dir home-dir
                   :name     "lambdacd pipeline"}
         ;; initialize and wire everything together
-        pipeline (lambdacd/assemble-pipeline pipeline/pipeline-def config)
+        pipeline (lambdacd/assemble-pipeline pipeline/pipeline-structure config)
         ;; create a Ring handler for the UI
         app      (ui-selection/ui-routes pipeline)]
     (log/info "LambdaCD Home Directory is " home-dir)
