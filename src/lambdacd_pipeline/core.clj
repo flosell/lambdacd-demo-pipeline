@@ -1,28 +1,52 @@
 (ns lambdacd-pipeline.core
   (:require
-    [lambdacd-pipeline.pipeline :as pipeline]
+    [lambdacd-pipeline.pipelines.lambdacd :as lambdacd-pipeline]
+    [lambdacd-pipeline.pipelines.meta :as meta-pipeline]
     [lambdacd-pipeline.ui-selection :as ui-selection]
     [org.httpkit.server :as http-kit]
     [lambdacd.runners :as runners]
     [lambdacd.util :as util]
     [lambdacd.core :as lambdacd]
-    [clojure.tools.logging :as log])
+    [clojure.tools.logging :as log]
+    [hiccup.core :as h]
+    [compojure.core :as compojure])
   (:gen-class))
 
-(defn -main [& args]
-  (let [;; the home dir is where LambdaCD saves all data.
-        ;; point this to a particular directory to keep builds around after restarting
-        home-dir (util/create-temp-dir)
-        config   {:home-dir home-dir
-                  :name     "lambdacd pipeline"}
-        ;; initialize and wire everything together
-        pipeline (lambdacd/assemble-pipeline pipeline/pipeline-structure config)
-        ;; create a Ring handler for the UI
-        app      (ui-selection/ui-routes pipeline)]
-    (log/info "LambdaCD Home Directory is " home-dir)
-    ;; this starts the pipeline and runs one build after the other.
-    ;; there are other runners and you can define your own as well.
+(def pipeline-configs [{:name               "LambdaCD Pipeline"
+                        :pipeline-url       "/lambdacd"
+                        :pipeline-structure lambdacd-pipeline/pipeline-structure}
+                       {:name               "Meta Pipeline"
+                        :pipeline-url       "/meta"
+                        :pipeline-structure meta-pipeline/pipeline-structure}])
+
+(defn pipeline-for [pipeline-config]
+  (let [home-dir           (util/create-temp-dir)
+        config             {:home-dir home-dir :name (:name pipeline-config)}
+        pipeline-structure (:pipeline-structure pipeline-config)
+        pipeline           (lambdacd/assemble-pipeline pipeline-structure config)
+        app                (ui-selection/ui-routes pipeline (:pipeline-url pipeline-config))]
     (runners/start-one-run-after-another pipeline)
-    ;; start the webserver to serve the UI
-    (http-kit/run-server app {:open-browser? false
-                              :port          8080})))
+    app))
+
+(defn mk-context [project]
+  (let [app (pipeline-for project)]
+    (compojure/context (:pipeline-url project) [] app)))
+
+(defn mk-link [{url :pipeline-url name :name}]
+  [:li [:a {:href (str url "/")} name]])
+
+(defn mk-index [projects]
+  (h/html
+    [:html
+     [:head
+      [:title "Pipelines"]]
+     [:body
+      [:h1 "Pipelines:"]
+      [:ul (map mk-link projects)]]]))
+
+(defn -main [& args]
+  (let [contexts (map mk-context pipeline-configs)
+        routes   (apply compojure/routes
+                        (conj contexts (compojure/GET "/" [] (mk-index pipeline-configs))))]
+    (http-kit/run-server routes {:open-browser? false
+                                 :port          8080})))

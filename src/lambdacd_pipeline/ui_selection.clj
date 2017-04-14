@@ -17,11 +17,11 @@
        [:a {:href "https://github.com/sroidl/lambda-ui"} "LambdaUI"]
        ", a community developed, opinionated alternative with a more user friendly interface"]
       [:ul
-       [:li [:a {:href "/lambdaui/lambdaui/index.html"} "LambdaUI"]]
-       [:li [:a {:href "/reference/"} "Reference UI"]]]]]))
+       [:li [:a {:href "./lambdaui/lambdaui/index.html"} "LambdaUI"]]
+       [:li [:a {:href "./reference/"} "Reference UI"]]]]]))
 
-(defn ui-routes [pipeline]
-  (let [lambdaui-app    (lambdaui/ui-for pipeline :contextPath "/lambdaui")
+(defn ui-routes [pipeline parent-path]
+  (let [lambdaui-app    (lambdaui/ui-for pipeline :contextPath (str parent-path "/lambdaui"))
         referenceui-app (reference-ui/ui-for pipeline)]
     (routes
       (GET "/" [] (ui-selection))
