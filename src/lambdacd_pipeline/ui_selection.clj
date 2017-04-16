@@ -1,5 +1,6 @@
 (ns lambdacd-pipeline.ui-selection
   (:require
+    [clojure.test :refer :all] ; workaround for lambdacd#169 (remove after release of lambdacd 0.13.2
     [hiccup.core :as h]
     [lambdaui.core :as lambdaui]
     [lambdacd.ui.core :as reference-ui]
