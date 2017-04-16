@@ -21,13 +21,26 @@ goal_build-container() {
   docker build -t ${CONTAINER_NAME} .
 }
 
-get_new_container_port() {
-  if docker ps --filter 'name=pipeline-' | grep -q 0.0.0.0:8080; then
-    echo 8081
+get_new_container_color() {
+  if docker ps --filter 'name=pipeline-' | grep -q green; then
+    echo "blue"
   else
-    echo 8080
+    echo "green"
   fi
 }
+
+ensure_docker_network() {
+  docker network ls | grep -q lambdacd || docker network create lambdacd --subnet 172.18.0.0/16
+}
+
+get_ip() {
+  if [ "${1}" == "green" ]; then
+    echo "172.18.0.10"
+  else
+    echo "172.18.0.11"
+  fi
+}
+
 
 goal_run-container() {
   if [ "${DEV_MODE}" == true ]; then
@@ -36,15 +49,29 @@ goal_run-container() {
     dev_args=""
   fi
 
+  ensure_docker_network
+
+  color=$(get_new_container_color)
+  ip=$(get_ip ${color})
+
   docker run \
     -d \
     --rm \
-    --name pipeline-$(date +%s) \
+    --network lambdacd \
+    --ip "${ip}" \
+    --name "pipeline-${color}" \
     -it \
-    -p $(get_new_container_port):8080 \
     -v /var/run/docker.sock:/var/run/docker.sock:rw \
     --group-add 50 --group-add 992 ${dev_args} \
     ${CONTAINER_NAME}
+}
+
+goal_run-lb() {
+  ensure_docker_network
+  
+  pushd "${SCRIPT_DIR}/haproxy" >/dev/null
+  docker build -t lambdacd-lb . && docker run -p 8000:8000  --name lambdacd-lb --network lambdacd --rm lambdacd-lb
+  popd >/dev/null
 }
 
 goal_stop-old-container() {
@@ -79,6 +106,7 @@ goal:
     build           -- run a complete build
 
     dev-up          -- run the lambdacd-environment locally
+    run-lb          -- run a loadbalancer so blue-green deploying new pipelines works
 
     clean           -- clean up working directory"
   exit 1
