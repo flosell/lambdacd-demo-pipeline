@@ -105,7 +105,7 @@ goal_run-lb() {
   docker run -p 8000:8000 \
              --name lambdacd-lb \
              --network lambdacd \
-             --detach
+             --detach \
              --volume ${SCRIPT_DIR}/lb/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg \
              haproxy:1.7-alpine
 }
