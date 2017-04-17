@@ -45,6 +45,12 @@ get_ip() {
   fi
 }
 
+clean_up_stopped_pipelines() {
+  stopped_pipelines=$(docker ps -a --filter 'status=exited' --filter 'name=pipeline' -q)
+  if [ ! -z "${stopped_pipelines}" ]; then
+    docker rm ${stopped_pipelines}
+  fi
+}
 
 goal_run-container() {
   if [ "${DEV_MODE}" == true ]; then
@@ -54,6 +60,8 @@ goal_run-container() {
   fi
 
   ensure_docker_network
+
+  clean_up_stopped_pipelines
 
   color=$(get_new_container_color)
   ip=$(get_ip ${color})
