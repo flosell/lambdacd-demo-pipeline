@@ -33,7 +33,11 @@
     (compojure/context (:pipeline-url project) [] app)))
 
 (defn mk-link [{url :pipeline-url name :name}]
-  [:li [:a {:href (str url "/")} name]])
+  [:li
+   name
+   [:ul
+    [:li [:a {:href (str url "/reference/")} "Reference UI"]]
+    [:li [:a {:href (str url "/lambdaui/lambdaui/index.html")} "LambdaUI"]]]])
 
 (defn mk-index [projects]
   (h/html
