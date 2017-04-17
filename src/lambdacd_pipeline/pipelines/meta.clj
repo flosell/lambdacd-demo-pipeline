@@ -36,8 +36,7 @@
 (def pipeline-structure
   `((either
       wait-for-manual-trigger
-      ;wait-for-git
-      )
+      wait-for-git)
      (with-workspace
        clone
        build
