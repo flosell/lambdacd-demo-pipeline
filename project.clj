@@ -1,6 +1,8 @@
 (defproject lambdacd-pipeline "0.1.0-SNAPSHOT"
-            :description "FIXME: write description"
-            :url "http://example.com/FIXME"
+            :description "Complete, deployable LambdaCD demo project with AWS infrastructure"
+            :url "http://github.com/flosell/lambdacd-demo-pipeline"
+            :license {:name "Apache License, version 2.0"
+                      :url "http://www.apache.org/licenses/LICENSE-2.0.html"}
             :dependencies [[lambdacd "0.13.1"]
                            [lambdacd-git "0.2.0"]
                            [lambdaui "0.4.0"]
