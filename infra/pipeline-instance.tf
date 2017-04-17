@@ -25,6 +25,7 @@ EOF
 
 set -e
 
+
 curl --output /usr/bin/lein https://raw.githubusercontent.com/technomancy/leiningen/stable/bin/lein
 chmod +x /usr/bin/lein
 
@@ -45,13 +46,15 @@ docker run --detach \
            --volume /etc/lambdacd-lb.cfg:/usr/local/etc/haproxy/haproxy.cfg \
            haproxy:1.7-alpine
 
+docker_group_id="$(grep ^docker /etc/group | cut -d: -f3)"
+
 docker run --detach \
            --network lambdacd \
            --ip "172.18.0.10" \
            --name "pipeline-green" \
            --restart always \
            --volume /var/run/docker.sock:/var/run/docker.sock:rw \
-           --group-add 50 --group-add 992 \
+           --group-add $${docker_group_id} \
            ${aws_ecr_repository.pipeline.repository_url}:latest
 
 yum update -y

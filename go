@@ -66,7 +66,7 @@ goal_run-container() {
     --name "pipeline-${color}" \
     -it \
     -v /var/run/docker.sock:/var/run/docker.sock:rw \
-    --group-add 50 --group-add 992 ${dev_args} \
+    --group-add 50 --group-add 992 --group-add 497 ${dev_args} \
     ${CONTAINER_NAME}
 }
 
