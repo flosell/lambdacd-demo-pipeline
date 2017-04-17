@@ -5,7 +5,7 @@
             [lambdacd-git.core :as core]
             [lambdacd.steps.shell :as shell]))
 
-(def repo "https://github.com/flosell/lambdacd-pipeline")
+(def repo "https://github.com/flosell/lambdacd-demo-pipeline.git")
 
 (defn wait-for-git [args ctx]
   (core/wait-for-git ctx repo
