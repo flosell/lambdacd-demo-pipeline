@@ -30,7 +30,7 @@
 
 (defn deploy [args ctx]
   (shell/bash ctx (:cwd args)
-              "DEV_MODE=TRUE ./go run-container"
+              "./go run-container"
               "./go stop-old-container"))
 
 (def pipeline-structure
