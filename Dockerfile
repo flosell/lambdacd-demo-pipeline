@@ -33,6 +33,7 @@ USER build
 WORKDIR /home/build
 
 RUN lein
+RUN mkdir -p /home/build/.m2 && touch /home/build/.m2/placeholder-so-permissions-are-right
 
 COPY target/lambdacd-pipeline-*-standalone.jar /pipeline.jar
 

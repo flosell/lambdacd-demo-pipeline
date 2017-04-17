@@ -73,6 +73,7 @@ goal_run-container() {
     --name "pipeline-${color}" \
     -it \
     -v /var/run/docker.sock:/var/run/docker.sock:rw \
+    -v lambdacdm2:/home/build/.m2:rw \
     --group-add 50 --group-add 992 --group-add 497 ${dev_args} \
     ${CONTAINER_NAME}
 }
