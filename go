@@ -4,6 +4,10 @@ set -e
 SCRIPT_DIR=$(cd "$(dirname "$0")" ; pwd -P)
 CONTAINER_NAME="lambdacd-pipeline"
 
+if [ -f "${SCRIPT_DIR}/.go-config" ]; then
+  source "${SCRIPT_DIR}/.go-config"
+fi
+
 echob() {
   echo -e "\033[1m$1\033[0m"
 }
@@ -66,12 +70,36 @@ goal_run-container() {
     ${CONTAINER_NAME}
 }
 
+function dockerWorking() {
+    docker pull ${DEMO_IMAGE_URL} > /dev/null
+}
+function ecrLogin() {
+     echob "Not logged into ECR yet, logging in"
+     eval "$(aws ecr get-login --region eu-central-1)"
+}
+
+goal_push-containers() {
+  if [ -z "${DEMO_IMAGE_URL}" ]; then
+    echo "Needs DEMO_IMAGE_URL"
+    exit 1
+  fi
+
+  dockerWorking || ecrLogin
+
+
+  docker tag ${CONTAINER_NAME}:latest ${DEMO_IMAGE_URL}:latest
+  docker push ${DEMO_IMAGE_URL}:latest
+}
+
 goal_run-lb() {
   ensure_docker_network
-  
-  pushd "${SCRIPT_DIR}/haproxy" >/dev/null
-  docker build -t lambdacd-lb . && docker run -p 8000:8000  --name lambdacd-lb --network lambdacd --rm lambdacd-lb
-  popd >/dev/null
+
+  docker run -p 8000:8000 \
+             --name lambdacd-lb \
+             --network lambdacd \
+             --rm \
+             --volume ${SCRIPT_DIR}/lb/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg \
+             haproxy:1.7-alpine
 }
 
 goal_stop-old-container() {
