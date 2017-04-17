@@ -59,8 +59,7 @@ goal_run-container() {
   ip=$(get_ip ${color})
 
   docker run \
-    -d \
-    --rm \
+    --detach \
     --network lambdacd \
     --ip "${ip}" \
     --name "pipeline-${color}" \
@@ -97,7 +96,7 @@ goal_run-lb() {
   docker run -p 8000:8000 \
              --name lambdacd-lb \
              --network lambdacd \
-             --rm \
+             --detach
              --volume ${SCRIPT_DIR}/lb/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg \
              haproxy:1.7-alpine
 }
@@ -106,7 +105,9 @@ goal_stop-old-container() {
   pipeline_container_ids=$(docker ps --filter 'name=pipeline-' -q)
   if [ $(wc -l <<< "${pipeline_container_ids}") -gt 1 ]; then
     echob "Found more than one running pipeline container, stopping oldest..."
-    docker stop $(tail -n 1 <<< "${pipeline_container_ids}")
+    id_to_stop=$(tail -n 1 <<< "${pipeline_container_ids}")
+    docker stop ${id_to_stop}
+    docker rm ${id_to_stop}
   else
     echob "Did not find more than one container, not stopping anything."
   fi
